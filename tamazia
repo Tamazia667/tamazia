@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION="1.0.0"
+DEV_INFO="by Hamza_ltc"
+CHANNEL="stable"
+
+workspace="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+logfile="$workspace/tamazia.log"
+model_file="$workspace/iphone_model.txt"
+
+usage() {
+  cat <<EOF
+Usage: tamazia [OPTIONS]
+Options:
+  -h, --help           Affiche cette aide
+  -v, --version        Affiche la version et quitte
+  -c, --channel NAME   Utilise le canal de version (stable|beta)
+  --stable             Même chose que --channel stable
+  --beta               Même chose que --channel beta
+
+Exemples:
+  tamazia
+  tamazia --channel beta
+  tamazia --version
+
+$DEV_INFO
+EOF
+}
+
+command -v idevice_id >/dev/null 2>&1 || {
+  echo "Erreur : idevice_id est introuvable. Installez libimobiledevice-utils." >&2
+  exit 1
+}
+command -v ideviceinfo >/dev/null 2>&1 || {
+  echo "Erreur : ideviceinfo est introuvable. Installez libimobiledevice-utils." >&2
+  exit 1
+}
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -v|--version)
+      echo "tamazia version $VERSION ($CHANNEL) $DEV_INFO"
+      exit 0
+      ;;
+    -c|--channel)
+      shift
+      if [ "$#" -eq 0 ]; then
+        echo "Erreur : argument manquant pour --channel" >&2
+        usage
+        exit 1
+      fi
+      CHANNEL="$1"
+      ;;
+    --stable)
+      CHANNEL="stable"
+      ;;
+    --beta)
+      CHANNEL="beta"
+      ;;
+    *)
+      echo "Option inconnue : $1" >&2
+      usage
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if [ "$CHANNEL" != "stable" ] && [ "$CHANNEL" != "beta" ]; then
+  echo "Erreur : canal invalide '$CHANNEL'. Utilisez stable ou beta." >&2
+  exit 1
+fi
+
+trap 'echo "Arrêt de tamazia."; exit 0' SIGINT SIGTERM
+
+echo "tamazia démarré ($CHANNEL). Veuillez brancher un iPhone." | tee -a "$logfile"
+echo "--- $(date '+%Y-%m-%d %H:%M:%S') : démarrage ($CHANNEL) ---" >> "$logfile"
+prev_serial=""
+
+while true; do
+  serial="$(idevice_id -l 2>/dev/null | head -n 1 || true)"
+  if [ -z "$serial" ]; then
+    if [ -n "$prev_serial" ]; then
+      echo "$(date '+%Y-%m-%d %H:%M:%S') : aucun iPhone détecté." | tee -a "$logfile"
+      prev_serial=""
+    fi
+  else
+    if [ "$serial" != "$prev_serial" ]; then
+      name="$(ideviceinfo -u "$serial" -k DeviceName 2>/dev/null || true)"
+      model="$(ideviceinfo -u "$serial" -k ProductType 2>/dev/null || true)"
+      os="$(ideviceinfo -u "$serial" -k ProductVersion 2>/dev/null || true)"
+      product_name="$(ideviceinfo -u "$serial" -k ProductName 2>/dev/null || true)"
+      if [ -z "$model" ]; then
+        model="inconnu"
+      fi
+      echo "$(date '+%Y-%m-%d %H:%M:%S') : iPhone détecté - Serial: $serial, Nom: $name, Modèle: $model, iOS: $os" | tee -a "$logfile"
+      cat > "$model_file" <<EOF
+Serial: $serial
+Name: $name
+ProductName: $product_name
+Model: $model
+OS: $os
+Channel: $CHANNEL
+DetectedAt: $(date '+%Y-%m-%d %H:%M:%S')
+EOF
+      prev_serial="$serial"
+    fi
+  fi
+  sleep 5
+ done
