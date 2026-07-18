@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Badge } from './ui/Badge';
 import { Button } from './ui/Button';
 import { RefreshCw, Smartphone, Tablet, Cpu, Usb, Check, CircleAlert, ChevronLeft, ChevronRight, Zap, ArrowLeft, Fingerprint, HardDrive, Wifi, BatteryFull, CalendarClock } from 'lucide-react';
+import { playFlute } from '../lib/audio';
 
 interface AndroidDevice {
   serial: string;
@@ -66,6 +67,7 @@ const AndroidPage: React.FC<Props> = ({ immersive, setImmersive }) => {
   }, []);
 
   const openDevice = (d: AndroidDevice) => {
+    playFlute();
     setSelected(d);
     setImmersive(true);
   };

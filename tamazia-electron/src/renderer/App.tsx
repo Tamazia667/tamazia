@@ -6,10 +6,11 @@ import SettingsPage from './components/SettingsPage';
 import AboutPage from './components/AboutPage';
 import DebugPage from './components/DebugPage';
 import SaharaBackground from './components/SaharaBackground';
+import SplashScreen from './components/SplashScreen';
 import { DeviceInfo, Settings } from './types';
 import { Minus, Square, X, Menu, Apple, Bug, Smartphone, Settings as SettingsIcon, Info, Volume2, VolumeX } from 'lucide-react';
 import { cn } from './lib/utils';
-import { startAmbience, toggleMute, isMuted } from './lib/audio';
+import { startAmbience, toggleMute, isMuted, attachClickSound } from './lib/audio';
 import './styles/global.css';
 
 type Page = 'dashboard' | 'android' | 'settings' | 'about' | 'debug';
@@ -61,8 +62,10 @@ const App: React.FC = () => {
   }, [immersive]);
 
   const [muted, setMuted] = useState(false);
+  const [splash, setSplash] = useState(true);
   useEffect(() => {
     startAmbience();
+    attachClickSound();
   }, []);
   const onToggleAudio = () => {
     const m = toggleMute();
@@ -72,6 +75,7 @@ const App: React.FC = () => {
   return (
     <div className="relative flex h-screen flex-col overflow-hidden">
       <SaharaBackground />
+      {splash && <SplashScreen onDone={() => setSplash(false)} />}
 
       <div className="shell relative z-10 flex h-full flex-col">
       <header className="flex h-10 shrink-0 items-center justify-between border-b border-border glass px-2">
