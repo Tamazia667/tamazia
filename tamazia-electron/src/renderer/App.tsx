@@ -6,7 +6,7 @@ import SettingsPage from './components/SettingsPage';
 import AboutPage from './components/AboutPage';
 import DebugPage from './components/DebugPage';
 import GamePage from './components/GamePage';
-import SaharaBackground from './components/SaharaBackground';
+import OceanBackground from './components/OceanBackground';
 import SplashScreen from './components/SplashScreen';
 import { DeviceInfo, Settings } from './types';
 import { Minus, Square, X, Menu, Apple, Bug, Smartphone, Settings as SettingsIcon, Info, Volume2, VolumeX, Gamepad2 } from 'lucide-react';
@@ -76,7 +76,7 @@ const App: React.FC = () => {
 
   return (
     <div className="relative flex h-screen flex-col overflow-hidden">
-      <SaharaBackground />
+      <OceanBackground />
       {splash && <SplashScreen onDone={() => setSplash(false)} />}
 
       <div className="shell relative z-10 flex h-full flex-col">

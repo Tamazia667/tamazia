@@ -22,7 +22,7 @@ const SplashScreen: React.FC<{ onDone: () => void }> = ({ onDone }) => {
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center"
-      style={{ background: 'linear-gradient(180deg, #2a1230 0%, #7a3b1a 55%, #e8a85a 100%)' }}
+      style={{ background: 'linear-gradient(180deg, #04243b 0%, #0a6e8f 55%, #39e6c8 100%)' }}
     >
       <motion.div
         initial={{ scale: 0.6, opacity: 0 }}
@@ -32,8 +32,8 @@ const SplashScreen: React.FC<{ onDone: () => void }> = ({ onDone }) => {
       >
         <motion.span
           className="font-display text-4xl font-bold text-primary"
-          animate={{ rotate: [0, 6, -6, 0] }}
-          transition={{ repeat: Infinity, duration: 2.4 }}
+          animate={{ y: [0, -6, 0] }}
+          transition={{ repeat: Infinity, duration: 2 }}
         >
           T
         </motion.span>
@@ -47,15 +47,12 @@ const SplashScreen: React.FC<{ onDone: () => void }> = ({ onDone }) => {
       >
         TAMAZIA
       </motion.h1>
-      <p className="mt-1 font-arabic text-sm text-foreground/70">مرحبا بك في صحراء تامازيا</p>
+      <p className="mt-1 text-sm text-foreground/70">Plongée dans l'océan des appareils</p>
 
       <div className="mt-8 h-1.5 w-56 overflow-hidden rounded-full bg-card/50">
-        <motion.div
-          className="h-full rounded-full bg-primary"
-          style={{ width: `${progress}%` }}
-        />
+        <motion.div className="h-full rounded-full bg-primary" style={{ width: `${progress}%` }} />
       </div>
-      <p className="mt-3 text-xs text-foreground/60">Chargement de l’oasis… {progress}%</p>
+      <p className="mt-3 text-xs text-foreground/60">Immersion en cours… {progress}%</p>
     </motion.div>
   );
 };

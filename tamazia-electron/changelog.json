@@ -1,5 +1,18 @@
 [
   {
+    "version": "1.16.0",
+    "date": "2026-07-18",
+    "changes": [
+      "Theme Ocean liquide tropical (fond 3D Three.js : eau, vagues, bulles, lumiere sous-marine)",
+      "Palette Ocean (turquoise/cyan/bleu profond) + glass bleu",
+      "Suppression du theme Sahara (fond desert, sable, overlay, splash pharaon)",
+      "Splash screen Ocean + ambiance sonore Ocean generee (pads/shimmer)",
+      "Detecteur Android (adb) : recupere modele + logo fabricant (mapping Wikimedia offligne)",
+      "Reference + prix estime en euros par gamme (entree/milieu/haut) via mapping local",
+      "Fiche appareil : logo, reference et prix affiches en temps reel"
+    ]
+  },
+  {
     "version": "1.15.0",
     "date": "2026-07-18",
     "changes": [

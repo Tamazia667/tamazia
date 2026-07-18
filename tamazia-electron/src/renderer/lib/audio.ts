@@ -24,7 +24,7 @@ function startSynth(): void {
   const make = (semitone: number, detune: number, type: OscillatorType, baseGain: number, lfoRate: number) => {
     const osc = ctx.createOscillator();
     osc.type = type;
-    osc.frequency.value = 220 * Math.pow(2, semitone / 12);
+    osc.frequency.value = 174 * Math.pow(2, semitone / 12);
     osc.detune.value = detune;
     const gain = ctx.createGain();
     gain.gain.value = baseGain;
@@ -41,11 +41,11 @@ function startSynth(): void {
     return { osc, lfo, gain };
   };
 
-  const ney = make(0, 4, 'sine', 0.25, 0.18);
-  const ney2 = make(7, -6, 'triangle', 0.16, 0.12);
-  const drone = make(-12, 2, 'sawtooth', 0.08, 0.05);
-  const bendir = make(12, 0, 'square', 0.04, 2.4);
-  synthNodes = [ney, ney2, drone, bendir];
+  const pad1 = make(0, 3, 'sine', 0.20, 0.08);
+  const pad2 = make(7, -4, 'triangle', 0.13, 0.06);
+  const sub = make(-12, 1, 'sine', 0.06, 0.03);
+  const shimmer = make(12, 0, 'sine', 0.03, 0.4);
+  synthNodes = [pad1, pad2, sub, shimmer];
 }
 
 function stopSynth(): void {

@@ -5,6 +5,7 @@ import { Badge } from './ui/Badge';
 import { Button } from './ui/Button';
 import { RefreshCw, Smartphone, Tablet, Cpu, Usb, Check, CircleAlert, ChevronLeft, ChevronRight, Zap, ArrowLeft, Fingerprint, HardDrive, Wifi, BatteryFull, CalendarClock } from 'lucide-react';
 import { playFlute } from '../lib/audio';
+import { buildDeviceMeta } from '../lib/deviceInfo';
 
 interface AndroidDevice {
   serial: string;
@@ -84,7 +85,6 @@ const AndroidPage: React.FC<Props> = ({ setImmersive }) => {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative mx-auto max-w-3xl">
-      <div className="sand-overlay" />
       <div className="relative z-10">
       <AnimatePresence mode="wait">
         {selected ? (
@@ -174,6 +174,9 @@ function DeviceDetail({ device, onBack }: { device: AndroidDevice; onBack: () =>
   const tiltX = useTransform(sy, (v) => `${v * -6}deg`);
   const tiltY = useTransform(sx, (v) => `${v * 6}deg`);
 
+  const meta = buildDeviceMeta(device.brand, device.model, device.product);
+  const priceLabel = meta.estimatedPriceEur != null ? `${meta.estimatedPriceEur} € (estimé ${meta.priceTier})` : 'Non disponible';
+
   const onMove = (e: React.MouseEvent) => {
     const r = ref.current?.getBoundingClientRect();
     if (!r) return;
@@ -223,15 +226,20 @@ function DeviceDetail({ device, onBack }: { device: AndroidDevice; onBack: () =>
         >
           <motion.div
             className="pointer-events-none absolute -inset-1 opacity-60 blur-3xl"
-            style={{ background: 'radial-gradient(circle at var(--gx) var(--gy), hsl(243 75% 59% / 0.5), transparent 60%)', '--gx': glowX, '--gy': glowY } as React.CSSProperties}
+            style={{ background: 'radial-gradient(circle at var(--gx) var(--gy), hsl(187 85% 50% / 0.5), transparent 60%)', '--gx': glowX, '--gy': glowY } as React.CSSProperties}
           />
           <div className="relative flex items-center gap-4">
-            <span className="grid h-16 w-16 place-items-center rounded-2xl bg-primary/20 text-primary" style={{ transform: 'translateZ(40px)' }}>
-              {device.isTablet ? <Tablet size={30} /> : <Smartphone size={30} />}
-            </span>
+            {meta.logoUrl ? (
+              <img src={meta.logoUrl} alt={meta.brandLabel} className="h-14 w-14 rounded-xl bg-white/90 p-2 object-contain" style={{ transform: 'translateZ(40px)' }} />
+            ) : (
+              <span className="grid h-16 w-16 place-items-center rounded-2xl bg-primary/20 text-primary" style={{ transform: 'translateZ(40px)' }}>
+                {device.isTablet ? <Tablet size={30} /> : <Smartphone size={30} />}
+              </span>
+            )}
             <div style={{ transform: 'translateZ(30px)' }}>
               <h2 className="font-display text-2xl font-bold text-primary">{device.model || 'Appareil Android'}</h2>
-              <p className="text-sm text-muted-foreground">{device.brand} · Android {device.androidVersion}</p>
+              <p className="text-sm text-muted-foreground">{meta.brandLabel} · Android {device.androidVersion}</p>
+              <p className="mt-1 text-xs text-accent">Réf : {meta.reference} · {priceLabel}</p>
             </div>
           </div>
         </motion.div>
