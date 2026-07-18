@@ -1,54 +1,60 @@
 # Tamazia — Tamazia iPhone Monitor
 
-Tamazia (tamazia-iphone-monitor) est une application Electron + React pour la détection et la gestion d'appareils iPhone connectés.
+Tamazia est une application Electron + React pour la détection et la gestion d'appareils iPhone connectés.
 
-Ce dépôt contient le paquet `tamazia-electron`.
+Ce dépôt contient le paquet `tamazia` avec l'application Electron à la racine du projet.
 
 ## Objectifs de cette release
-- Version: v1.10.0
-- Voir `tamazia-electron/changelog.json` pour les notes de version.
+- Version: v1.0.0
+- Réinitialisation du projet et publication initiale
+- Packaged en version Linux x64 via `electron-packager`
 
 ## Installation (développement)
-Pré-requis:
-- Node.js (>=18) et npm
-- yarn ou npm (npm utilisé ci-dessous)
+Prerequis:
+- Node.js (>=18)
+- npm
 
 À la racine du dépôt:
 
 ```bash
-cd tamazia-electron
-npm ci
+npm install
 npm run dev
 ```
 
 ## Build de production
-Pour construire les binaires Linux (x64) et créer l'archive `out/`:
+Pour compiler l'application et préparer le packaging localement :
 
 ```bash
-cd tamazia-electron
 npm run build:prod
 ```
 
-Le script `build:prod` utilise `electron-packager` et place les artefacts dans `out/`.
+Pour créer un paquet Linux localement :
+
+```bash
+npm run package:linux
+```
+
+Les artefacts sont générés dans `out/`.
 
 ## CI / Release
-Un workflow GitHub Actions est fourni dans `.github/workflows/ci.yml` qui :
-- exécute les builds sur chaque push
-- crée une Release GitHub automatique quand un tag `v*` est poussé
+Ce dépôt contient deux workflows GitHub Actions :
 
-Important: ne stockez JAMAIS de token GitHub en clair dans le dépôt. Utilisez `GITHUB_TOKEN` ou un secret repository pour les tokens.
+- `.github/workflows/ci.yml` : build de la branche principale à chaque push/PR
+- `.github/workflows/release-build.yml` : packaging multi-plateforme automatique sur push de tag `v*`
+
+Le workflow de release construit les paquets sur Ubuntu, macOS et Windows, puis crée ou met à jour la Release GitHub associée.
 
 ## Fichiers de configuration d'environnement
-Un fichier `.env.example` est fourni à la racine. Copiez-le en `.env` localement et adaptez les valeurs (ne pas committer de secrets).
+Un fichier `.env.example` est fourni à la racine. Copiez-le en `.env` localement et adaptez les valeurs.
 
 ## Contribution
-Merci de contribuer !
+Merci de contribuer !
 - Ouvrez une issue pour discuter d'un changement
-- Créez une branche feature/ ou fix/
-- Ouvrez une PR ciblant la branche principale
+- Créez une branche `feature/` ou `fix/`
+- Ouvrez une PR ciblant `main`
 
 ## Sécurité
-Si un token GitHub a été divulgué (copié/collé dans une issue ou discussion), révoquez-le immédiatement via https://github.com/settings/tokens
+Ne stockez jamais de tokens GitHub en clair dans le dépôt. Utilisez `GITHUB_TOKEN` ou des secrets GitHub Actions.
 
 ---
 
