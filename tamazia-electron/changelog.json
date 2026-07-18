@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.17.0",
+    "date": "2026-07-18",
+    "changes": [
+      "Suppression complete du detecteur Android (adb) : plus de scan adb, plus de panneau Android",
+      "Suppression de la page Android immersive et du mapping logo/reference/prix Android",
+      "Nettoyage de l'API (preload/types) : retrait de scanAndroid et debugTrace",
+      "Page Debug simplifiee : journaux + process (retrait du traçage de scan obsolete)",
+      "Suppression du son de flute (openDevice Android) et de l'etat immersif sidebar inutilise",
+      "iPhone (libimobiledevice) reste le seul detecteur d'appareil"
+    ]
+  },
+  {
     "version": "1.16.0",
     "date": "2026-07-18",
     "changes": [

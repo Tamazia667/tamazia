@@ -1,0 +1,8 @@
+node_modules/
+out/
+dist/
+*.log
+iphone_model.txt
+release/
+.DS_Store
+*.deb

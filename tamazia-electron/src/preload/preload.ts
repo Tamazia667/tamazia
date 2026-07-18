@@ -31,7 +31,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   getLogs: () => ipcRenderer.invoke('get-logs'),
 
-  debugTrace: () => ipcRenderer.invoke('debug-trace'),
 
   debugProcess: () => ipcRenderer.invoke('debug-process'),
 
@@ -40,7 +39,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getVersion: () => ipcRenderer.invoke('get-version'),
   getChangelog: () => ipcRenderer.invoke('get-changelog'),
   checkUpdate: () => ipcRenderer.invoke('check-update'),
-  scanAndroid: () => ipcRenderer.invoke('scan-android'),
 
   onDeviceConnected: (callback: (info: DeviceInfo) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, info: DeviceInfo) => callback(info);

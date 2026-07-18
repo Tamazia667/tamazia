@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Dashboard from './components/Dashboard';
-import AndroidPage from './components/AndroidPage';
 import SettingsPage from './components/SettingsPage';
 import AboutPage from './components/AboutPage';
 import DebugPage from './components/DebugPage';
@@ -9,16 +8,15 @@ import GamePage from './components/GamePage';
 import OceanBackground from './components/OceanBackground';
 import SplashScreen from './components/SplashScreen';
 import { DeviceInfo, Settings } from './types';
-import { Minus, Square, X, Menu, Apple, Bug, Smartphone, Settings as SettingsIcon, Info, Volume2, VolumeX, Gamepad2 } from 'lucide-react';
+import { Minus, Square, X, Menu, Apple, Bug, Settings as SettingsIcon, Info, Volume2, VolumeX, Gamepad2 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { startAmbience, toggleMute, isMuted, attachClickSound } from './lib/audio';
 import './styles/global.css';
 
-type Page = 'dashboard' | 'android' | 'settings' | 'about' | 'debug' | 'game';
+type Page = 'dashboard' | 'settings' | 'about' | 'debug' | 'game';
 
 const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', label: 'iPhone', icon: <Apple size={18} /> },
-  { id: 'android', label: 'Android', icon: <Smartphone size={18} /> },
   { id: 'settings', label: 'Settings', icon: <SettingsIcon size={18} /> },
   { id: 'about', label: 'About', icon: <Info size={18} /> },
   { id: 'debug', label: 'Debug', icon: <Bug size={18} /> },
@@ -30,7 +28,6 @@ const App: React.FC = () => {
   const [device, setDevice] = useState<DeviceInfo | null>(null);
   const [depsOk, setDepsOk] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [immersive, setImmersive] = useState(false);
   const [settings, setSettings] = useState<Settings>(() => {
     try {
       const saved = localStorage.getItem('tamazia-settings');
@@ -59,9 +56,6 @@ const App: React.FC = () => {
     return () => { c1(); c2(); };
   }, []);
 
-  useEffect(() => {
-    if (immersive) setSidebarOpen(false);
-  }, [immersive]);
 
   const [muted, setMuted] = useState(isMuted());
   const [splash, setSplash] = useState(true);
@@ -82,7 +76,7 @@ const App: React.FC = () => {
       <div className="shell relative z-10 flex h-full flex-col">
       <header className="flex h-10 shrink-0 items-center justify-between border-b border-border glass px-2">
         <div className="flex items-center gap-2">
-          <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30" onClick={() => setSidebarOpen(v => !v)} disabled={immersive}>
+          <button className="grid h-7 w-7 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-30" onClick={() => setSidebarOpen(v => !v)}>
             <Menu size={16} />
           </button>
           <span className="font-display text-sm font-bold tracking-wider text-primary">TAMAZIA</span>
@@ -135,7 +129,6 @@ const App: React.FC = () => {
             transition={{ duration: 0.2, ease: 'easeOut' }}
           >
               {currentPage === 'dashboard' && <Dashboard device={device} depsOk={depsOk} />}
-              {currentPage === 'android' && <AndroidPage immersive={immersive} setImmersive={setImmersive} />}
               {currentPage === 'settings' && <SettingsPage settings={settings} onChange={setSettings} />}
               {currentPage === 'about' && <AboutPage />}
               {currentPage === 'debug' && <DebugPage />}

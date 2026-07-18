@@ -3,7 +3,7 @@ import * as path from 'path';
 import { exec } from 'child_process';
 import * as fs from 'fs';
 import { promisify } from 'util';
-import { runCommand, getEnrichedPath } from './services/platformUtils';
+import { getEnrichedPath } from './services/platformUtils';
 
 const execAsync = promisify(exec);
 
@@ -56,10 +56,7 @@ function createWindow(): void {
   mainWindow.loadFile(path.join(__dirname, '..', 'renderer', 'index.html'));
 
   try {
-    const ep = getEnrichedPath().split(path.delimiter);
-    const adb = ep.find((p) => { try { return fs.existsSync(path.join(p, 'adb')); } catch { return false; } });
     writeLog(`[boot] electron=${process.versions.electron} node=${process.versions.node} arch=${process.arch}`);
-    writeLog(`[boot] adb ${adb ? 'trouvé -> ' + adb : 'INTROUVABLE dans le PATH'}`);
     writeLog(`[boot] workspace=${WORKSPACE} logfile=${LOGFILE}`);
   } catch {}
 
@@ -130,9 +127,6 @@ ipcMain.handle('get-logs', () => {
 
 ipcMain.handle('debug-process', () => {
   const extraPaths = getEnrichedPath().split(path.delimiter);
-  const adbInPath = extraPaths.some((p) => {
-    try { return fs.existsSync(path.join(p, 'adb')); } catch { return false; }
-  });
   return {
     electron: process.versions.electron,
     node: process.versions.node,
@@ -146,98 +140,8 @@ ipcMain.handle('debug-process', () => {
     args: process.argv,
     envPath: (process.env.PATH || '').split(path.delimiter),
     enrichedPath: extraPaths,
-    adbFoundInPath: adbInPath,
     startTime: app.getPath('userData'),
     uptimeSec: Math.round(process.uptime()),
-  };
-});
-
-interface TraceStep {
-  ok: boolean;
-  label: string;
-  detail: string;
-  ms?: number;
-}
-
-ipcMain.handle('debug-trace', async () => {
-  const steps: TraceStep[] = [];
-  const guard = async (label: string, fn: () => Promise<{ ok: boolean; detail: string }>): Promise<boolean> => {
-    const t0 = Date.now();
-    try {
-      const r = await fn();
-      steps.push({ ok: r.ok, label, detail: r.detail, ms: Date.now() - t0 });
-      return r.ok;
-    } catch (e: any) {
-      steps.push({ ok: false, label, detail: String(e?.message || e), ms: Date.now() - t0 });
-      return false;
-    }
-  };
-
-  await guard('adb présent dans le PATH', async () => {
-    const r = await runCommand('adb version', 4000);
-    return { ok: r.code === 0, detail: r.code === 0 ? (r.stdout.split('\n')[0] || 'ok') : (r.stderr || 'introuvable') };
-  });
-
-  const devices: { serial: string; status: string }[] = [];
-  await guard('adb devices listés', async () => {
-    const r = await runCommand('adb devices', 5000);
-    if (r.code !== 0) return { ok: false, detail: r.stderr || 'échec' };
-    devices.push(
-      ...r.stdout.split('\n').slice(1)
-        .map((l) => l.trim().split(/\s+/))
-        .filter((p) => p.length >= 2 && p[0] && /^[A-Za-z0-9-]+$/.test(p[0]))
-        .map((p) => ({ serial: p[0], status: p[1] }))
-    );
-    return { ok: true, detail: devices.length ? `${devices.length} appareil(s)` : 'aucun' };
-  });
-
-  let scanned = 0;
-  for (const d of devices) {
-    const serial = d.serial;
-    await guard(`[${serial}] statut = device`, async () => ({
-      ok: d.status === 'device',
-      detail: d.status === 'device' ? 'autorisé' : `statut: ${d.status} (à débrancher/rebrancher ou autoriser)`,
-    }));
-    if (d.status !== 'device') continue;
-
-    const prop = (key: string) => runCommand(`adb -s ${serial} shell getprop ${key}`, 3000)
-      .then((r) => (r.stdout || '').trim().replace(/[\r\n]/g, ''));
-
-    const checks: [string, string][] = [
-      ['ro.product.model', 'modèle'],
-      ['ro.product.brand', 'marque'],
-      ['ro.build.version.release', 'version Android'],
-      ['ro.build.characteristics', 'caractéristiques'],
-    ];
-    for (const [key, name] of checks) {
-      await guard(`[${serial}] getprop ${name}`, async () => {
-        const v = await prop(key);
-        return { ok: !!v, detail: v || 'vide' };
-      });
-    }
-
-    await guard(`[${serial}] débogage USB (adb_enabled)`, async () => {
-      const v = await runCommand(`adb -s ${serial} shell settings get global adb_enabled`, 3000).then((r) => (r.stdout || '').trim());
-      return { ok: v === '1', detail: v === '1' ? 'activé' : `valeur=${v}` };
-    });
-
-    await guard(`[${serial}] IMEI (iphonesubinfo)`, async () => {
-      const r = await runCommand(`adb -s ${serial} shell service call iphonesubinfo 1`, 3000);
-      const m = r.stdout.match(/'([^']+)'/g);
-      const imei = m ? m.map((s) => s.replace(/'| /g, '')).join('').replace(/\./g, '').trim() : '';
-      return { ok: true, detail: imei || 'non autorisé / indisponible' };
-    });
-
-    scanned++;
-  }
-
-  const allOk = steps.every((s) => s.ok);
-  return {
-    ok: allOk,
-    scanned,
-    deviceCount: devices.length,
-    steps,
-    generatedAt: new Date().toISOString(),
   };
 });
 
@@ -314,94 +218,6 @@ ipcMain.handle('check-update', async () => {
   }
 });
 
-interface AndroidDevice {
-  serial: string;
-  model: string;
-  product: string;
-  device: string;
-  androidVersion: string;
-  imei: string;
-  status: string;
-  isTablet: boolean;
-  brand: string;
-  usbDebug: boolean;
-}
-
-async function getAndroidDevices(): Promise<AndroidDevice[]> {
-  const list = await runCommand('adb devices', 5000);
-  if (list.code !== 0) return [];
-  const lines = list.stdout.split('\n').slice(1);
-  const entries = lines
-    .map((l) => l.trim().split(/\s+/))
-    .filter((p) => p.length >= 2 && p[0] && /^[A-Za-z0-9-]+$/.test(p[0]))
-    .map((p) => ({ serial: p[0], status: p[1] }));
-
-  const devices: AndroidDevice[] = [];
-  for (const { serial, status } of entries) {
-    if (status !== 'device') continue;
-
-    const prop = (key: string) =>
-      runCommand(`adb -s ${serial} shell getprop ${key}`, 3000).then((r) =>
-        (r.stdout || '').trim().replace(/[\r\n]/g, '')
-      );
-
-    const [model, product, deviceName, brand, androidVersion, character] = await Promise.all([
-      prop('ro.product.model'),
-      prop('ro.product.name'),
-      prop('ro.product.device'),
-      prop('ro.product.brand'),
-      prop('ro.build.version.release'),
-      prop('ro.build.characteristics'),
-    ]);
-
-    const usbDebugRaw = await runCommand(`adb -s ${serial} shell settings get global adb_enabled`, 3000)
-      .then((r) => (r.stdout || '').trim())
-      .catch(() => '');
-    const usbDebug = usbDebugRaw === '1';
-
-    let imei = '';
-    try {
-      const imeiR = await runCommand(`adb -s ${serial} shell service call iphonesubinfo 1`, 3000);
-      if (imeiR.stdout) {
-        const m = imeiR.stdout.match(/'([^']+)'/g);
-        if (m) imei = m.map((s) => s.replace(/'| /g, '')).join('').replace(/\./g, '').trim();
-      }
-    } catch { /* imei non disponible */ }
-
-    const isTablet = /tablet|tv|automotive/.test(character) || /tab|sm-t|gt-?[pn]/.test(model.toLowerCase());
-
-    devices.push({
-      serial,
-      model: model || 'Inconnu',
-      product: product || '',
-      device: deviceName || '',
-      androidVersion: androidVersion || 'Inconnu',
-      imei,
-      status: 'connecté',
-      isTablet,
-      brand: brand || 'Android',
-      usbDebug,
-    });
-  }
-  return devices;
-}
-
-let androidScanning = false;
-ipcMain.handle('scan-android', async () => {
-  if (androidScanning) return { ok: true, devices: [], scanning: true };
-  androidScanning = true;
-  try {
-    const devices = await Promise.race([
-      getAndroidDevices(),
-      new Promise<AndroidDevice[]>((resolve) => setTimeout(() => resolve([]), 10000)),
-    ]);
-    return { ok: true, devices };
-  } catch {
-    return { ok: false, devices: [] };
-  } finally {
-    androidScanning = false;
-  }
-});
 
 let currentChannel = 'stable';
 

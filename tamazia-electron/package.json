@@ -1,6 +1,6 @@
 {
   "name": "tamazia-iphone-monitor",
-  "version": "1.16.0",
+  "version": "1.17.0",
   "description": "Tamazia iPhone Monitor - Detection et surveillance iPhone multi-OS",
   "main": "dist/main/main.js",
   "scripts": {

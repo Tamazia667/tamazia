@@ -122,12 +122,6 @@ function playDrum(): void {
   src.start(t); src.stop(t + 0.25);
 }
 
-export function playFlute(): void {
-  ensureCtx().resume();
-  envTone(440, 0.5, 'sine', 0.22, 660);
-  setTimeout(() => envTone(587, 0.4, 'triangle', 0.16), 160);
-}
-
 export function playClick(): void {
   ensureCtx().resume();
   envTone(880, 0.08, 'square', 0.12, 440);
