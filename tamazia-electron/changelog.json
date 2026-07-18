@@ -1,5 +1,28 @@
 [
   {
+    "version": "1.15.0",
+    "date": "2026-07-18",
+    "changes": [
+      "Pipeline qualite : ESLint (flat config) + Prettier + Vitest (tests unitaires)",
+      "CI GitHub Actions : lint + tests + build sur push/PR",
+      "Detection automatique du materiel (GPU/VRAM/CPU/RAM/ecran via WebGL2 + deviceMemory)",
+      "Auto-configuration de la qualite graphique (low/medium/high/ultra) selon la machine",
+      "Jeu 3D : PBR, tone mapping ACES (HDR), ombres PCFSoft, InstancedMesh, LOD",
+      "Splash d'alerte si GPU/VRAM limite(s) avec conseil de performance",
+      "Support manette (Gamepad API) pour la camera du jeu"
+    ]
+  },
+  {
+    "version": "1.14.0",
+    "date": "2026-07-18",
+    "changes": [
+      "Nouveau jeu 3D 'Oasis des Appareils' (Three.js, haute performance, OrbitControls)",
+      "Scene desert realiste : pyramide, pilliers, palmier, soleil, ombres",
+      "Sortilege de sable dore declenche a la detection d'un appareil",
+      "Ajout de la page 'Jeu' dans la navigation"
+    ]
+  },
+  {
     "version": "1.13.0",
     "date": "2026-07-18",
     "changes": [

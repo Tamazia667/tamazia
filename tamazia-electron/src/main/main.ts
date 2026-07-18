@@ -1,6 +1,6 @@
-import { app, BrowserWindow, ipcMain, shell, Notification } from 'electron';
+import { app, BrowserWindow, ipcMain, Notification } from 'electron';
 import * as path from 'path';
-import { exec, execSync } from 'child_process';
+import { exec } from 'child_process';
 import * as fs from 'fs';
 import { promisify } from 'util';
 import { runCommand, getEnrichedPath } from './services/platformUtils';

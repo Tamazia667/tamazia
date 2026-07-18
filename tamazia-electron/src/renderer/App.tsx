@@ -5,15 +5,16 @@ import AndroidPage from './components/AndroidPage';
 import SettingsPage from './components/SettingsPage';
 import AboutPage from './components/AboutPage';
 import DebugPage from './components/DebugPage';
+import GamePage from './components/GamePage';
 import SaharaBackground from './components/SaharaBackground';
 import SplashScreen from './components/SplashScreen';
 import { DeviceInfo, Settings } from './types';
-import { Minus, Square, X, Menu, Apple, Bug, Smartphone, Settings as SettingsIcon, Info, Volume2, VolumeX } from 'lucide-react';
+import { Minus, Square, X, Menu, Apple, Bug, Smartphone, Settings as SettingsIcon, Info, Volume2, VolumeX, Gamepad2 } from 'lucide-react';
 import { cn } from './lib/utils';
 import { startAmbience, toggleMute, isMuted, attachClickSound } from './lib/audio';
 import './styles/global.css';
 
-type Page = 'dashboard' | 'android' | 'settings' | 'about' | 'debug';
+type Page = 'dashboard' | 'android' | 'settings' | 'about' | 'debug' | 'game';
 
 const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
   { id: 'dashboard', label: 'iPhone', icon: <Apple size={18} /> },
@@ -21,6 +22,7 @@ const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
   { id: 'settings', label: 'Settings', icon: <SettingsIcon size={18} /> },
   { id: 'about', label: 'About', icon: <Info size={18} /> },
   { id: 'debug', label: 'Debug', icon: <Bug size={18} /> },
+  { id: 'game', label: 'Jeu', icon: <Gamepad2 size={18} /> },
 ];
 
 const App: React.FC = () => {
@@ -61,7 +63,7 @@ const App: React.FC = () => {
     if (immersive) setSidebarOpen(false);
   }, [immersive]);
 
-  const [muted, setMuted] = useState(false);
+  const [muted, setMuted] = useState(isMuted());
   const [splash, setSplash] = useState(true);
   useEffect(() => {
     startAmbience();
@@ -137,6 +139,7 @@ const App: React.FC = () => {
               {currentPage === 'settings' && <SettingsPage settings={settings} onChange={setSettings} />}
               {currentPage === 'about' && <AboutPage />}
               {currentPage === 'debug' && <DebugPage />}
+              {currentPage === 'game' && <GamePage deviceConnected={!!device} />}
           </motion.div>
         </main>
       </div>

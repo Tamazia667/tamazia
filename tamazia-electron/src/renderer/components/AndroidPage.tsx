@@ -37,7 +37,7 @@ function SettingsGear() {
 
 interface Props { immersive: boolean; setImmersive: (v: boolean) => void; }
 
-const AndroidPage: React.FC<Props> = ({ immersive, setImmersive }) => {
+const AndroidPage: React.FC<Props> = ({ setImmersive }) => {
   const [devices, setDevices] = useState<AndroidDevice[]>([]);
   const [loading, setLoading] = useState(false);
   const [adbMissing, setAdbMissing] = useState(false);

@@ -58,3 +58,25 @@ zip -r -q "$ZIP_NAME" .
 
 echo "Release prete dans : $RELEASE_DIR"
 ls -lh "$RELEASE_DIR"
+
+echo "Publication Git : tag + release GitHub"
+cd "$ROOT"
+TAG="v$VERSION"
+NOTES="$(node -e "const c=require('./changelog.json'); const e=c.find(x=>x.version==='$VERSION'); console.log((e?e.changes:[ ]).map(l=>'- '+l).join('\n'));")"
+
+git add -A
+git commit -m "Release $TAG" || true
+git tag -a "$TAG" -m "Tamazia $TAG
+
+$NOTES"
+git push origin HEAD --tags
+
+if command -v gh >/dev/null 2>&1; then
+  gh release create "$TAG" \
+    --title "Tamazia $TAG" \
+    --notes "$NOTES" \
+    "$RELEASE_DIR/$ZIP_NAME"
+  echo "Release GitHub $TAG cree."
+else
+  echo "gh non disponible : tag pousse, cree la release manuellement."
+fi
