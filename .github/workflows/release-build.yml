@@ -13,6 +13,7 @@ jobs:
     name: Package release on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
 
@@ -25,7 +26,7 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build application
         run: npm run build
@@ -37,9 +38,23 @@ jobs:
           if [ "${{ matrix.os }}" = "windows-latest" ]; then npm run package:win; fi
         shell: bash
 
+      - name: Archive build artifact
+        if: matrix.os != 'windows-latest'
+        run: |
+          PLATFORM=linux
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then PLATFORM=macos; fi
+          zip -r "Tamazia-${PLATFORM}-x64.zip" out
+        shell: bash
+
+      - name: Archive build artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          Compress-Archive -Path out\* -DestinationPath Tamazia-windows-x64.zip -Force
+        shell: pwsh
+
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
-          files: out/**
+          files: Tamazia-*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

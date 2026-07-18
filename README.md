@@ -4,6 +4,8 @@ Tamazia est une application Electron + React pour la détection et la gestion d'
 
 Ce dépôt contient le paquet `tamazia` avec l'application Electron à la racine du projet.
 
+> Projet préparé et automatisé pour GitHub par Tamazia667.
+
 ## Objectifs de cette release
 - Version: v1.0.0
 - Réinitialisation du projet et publication initiale
@@ -55,6 +57,9 @@ Merci de contribuer !
 
 ## Sécurité
 Ne stockez jamais de tokens GitHub en clair dans le dépôt. Utilisez `GITHUB_TOKEN` ou des secrets GitHub Actions.
+
+## Crédits
+Ce projet est géré et configuré par Tamazia667 avec une automatisation GitHub Actions pour la compilation et la publication.
 
 ---
 
