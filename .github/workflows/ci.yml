@@ -20,12 +20,10 @@ jobs:
           node-version: '18'
 
       - name: Install dependencies
-        working-directory: tamazia-electron
-        run: npm ci
+        run: npm install
 
       - name: Run build (prod)
-        working-directory: tamazia-electron
-        run: npm run build:prod || true
+        run: npm run build:prod
 
       - name: Archive build output
         if: always()

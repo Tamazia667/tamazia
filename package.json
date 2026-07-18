@@ -1,11 +1,14 @@
 {
-  "name": "tamazia-electron",
+  "name": "tamazia",
   "version": "1.0.0",
-  "description": "Tamazia iPhone Monitor - Interface moderne pour détection iPhone",
+  "description": "Tamazia Electron app for iPhone monitoring",
   "main": "dist/main/main.js",
   "scripts": {
     "build": "tsc && webpack --config webpack.config.js",
-    "build:prod": "tsc && webpack --config webpack.config.js && npx electron-packager . tamazia-iphone-monitor --platform=linux --arch=x64 --out=out --overwrite && cp changelog.json out/tamazia-iphone-monitor-linux-x64/ && cp assets/icon.png out/tamazia-iphone-monitor-linux-x64/ && cp ../Tamazia.desktop /home/hamza/Bureau/Tamazia.desktop && chmod +x /home/hamza/Bureau/Tamazia.desktop && gio set /home/hamza/Bureau/Tamazia.desktop metadata::trusted yes && echo '✅ Build complet et raccourci bureau mis à jour'",
+    "build:prod": "npm run build",
+    "package:linux": "npm run build && npx electron-packager . Tamazia --platform=linux --arch=x64 --out=out --overwrite --prune=true --asar=true",
+    "package:mac": "npm run build && npx electron-packager . Tamazia --platform=darwin --arch=x64 --out=out --overwrite --prune=true --asar=true",
+    "package:win": "npm run build && npx electron-packager . Tamazia --platform=win32 --arch=x64 --out=out --overwrite --prune=true --asar=true",
     "start": "npm run build && electron .",
     "dev": "webpack --config webpack.config.js --watch & electron .",
     "postinstall": "electron-rebuild -f -w better-sqlite3"
@@ -23,6 +26,7 @@
     "@types/react-dom": "^18.2.0",
     "css-loader": "^6.8.0",
     "electron": "^28.0.0",
+    "electron-packager": "^17.1.0",
     "electron-rebuild": "^3.2.9",
     "html-webpack-plugin": "^5.5.0",
     "style-loader": "^3.3.0",
