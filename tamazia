@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VERSION="1.0.0"
+VERSION="1.11.0"
 DEV_INFO="by Hamza_ltc"
 CHANNEL="stable"
 
@@ -76,17 +76,17 @@ if [ "$CHANNEL" != "stable" ] && [ "$CHANNEL" != "beta" ]; then
   exit 1
 fi
 
-trap 'echo "Arrêt de tamazia."; exit 0' SIGINT SIGTERM
+trap 'echo "Arret de tamazia."; exit 0' SIGINT SIGTERM
 
-echo "tamazia démarré ($CHANNEL). Veuillez brancher un iPhone." | tee -a "$logfile"
-echo "--- $(date '+%Y-%m-%d %H:%M:%S') : démarrage ($CHANNEL) ---" >> "$logfile"
+echo "tamazia demarre ($CHANNEL). Veuillez brancher un iPhone." | tee -a "$logfile"
+echo "--- $(date '+%Y-%m-%d %H:%M:%S') : demarrage ($CHANNEL) ---" >> "$logfile"
 prev_serial=""
 
 while true; do
   serial="$(idevice_id -l 2>/dev/null | head -n 1 || true)"
   if [ -z "$serial" ]; then
     if [ -n "$prev_serial" ]; then
-      echo "$(date '+%Y-%m-%d %H:%M:%S') : aucun iPhone détecté." | tee -a "$logfile"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') : aucun iPhone detecte." | tee -a "$logfile"
       prev_serial=""
     fi
   else
@@ -98,7 +98,7 @@ while true; do
       if [ -z "$model" ]; then
         model="inconnu"
       fi
-      echo "$(date '+%Y-%m-%d %H:%M:%S') : iPhone détecté - Serial: $serial, Nom: $name, Modèle: $model, iOS: $os" | tee -a "$logfile"
+      echo "$(date '+%Y-%m-%d %H:%M:%S') : iPhone detecte - Serial: $serial, Nom: $name, Modele: $model, iOS: $os" | tee -a "$logfile"
       cat > "$model_file" <<EOF
 Serial: $serial
 Name: $name
@@ -112,4 +112,4 @@ EOF
     fi
   fi
   sleep 5
- done
+done

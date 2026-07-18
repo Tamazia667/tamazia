@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Tamazia iPhone Monitor
+Comment=Interface moderne de détection et surveillance d'iPhone - Electron + React
+Exec=/home/hamza/Bureau/PhoneTools/tamazia-electron/run.sh
+Icon=phone
+Terminal=false
+Type=Application
+Categories=Utility;Hardware;Monitor;
+StartupNotify=true
+StartupWMClass=tamazia-iphone-monitor
+X-GNOME-UsesNotifications=true

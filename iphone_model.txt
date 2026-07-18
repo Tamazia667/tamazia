@@ -1,6 +1,0 @@
-Serial: 00008110-000130141AA8201E
-Name: iPhone
-ProductName: iPhone OS
-Model: iPhone14,7
-OS: 26.5
-DetectedAt: 2026-07-14 21:21:38

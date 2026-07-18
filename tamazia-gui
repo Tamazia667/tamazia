@@ -1,0 +1,402 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import subprocess
+import threading
+import time
+import signal
+from datetime import datetime
+
+import gi
+gi.require_version('Gtk', '4.0')
+gi.require_version('Adw', '1')
+from gi.repository import Gtk, Adw, GLib, Gio, Gdk
+
+VERSION = "1.11.0"
+DEV_INFO = "by Hamza_ltc"
+
+WORKSPACE = os.path.dirname(os.path.abspath(__file__))
+LOGFILE = os.path.join(WORKSPACE, "tamazia.log")
+MODEL_FILE = os.path.join(WORKSPACE, "iphone_model.txt")
+
+
+class TamaziaGUI(Adw.Application):
+    def __init__(self):
+        super().__init__(application_id='com.tamazia.iphone-monitor')
+        self.connect('activate', self.on_activate)
+
+        self.running = False
+        self.channel = "stable"
+        self.prev_serial = ""
+        self.monitor_thread = None
+        self.stop_event = threading.Event()
+
+        self.status_label = None
+        self.log_buffer = None
+        self.start_stop_btn = None
+        self.spinner = None
+        self.serial_label = None
+        self.name_label = None
+        self.model_label = None
+        self.os_label = None
+        self.channel_row = None
+
+    def on_activate(self, app):
+        win = Adw.ApplicationWindow(application=app)
+        win.set_title("Tamazia iPhone Monitor")
+        win.set_default_size(600, 500)
+        win.set_resizable(True)
+
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_string("""
+            .info-card {
+                margin: 8px;
+                padding: 12px;
+            }
+            .status-label {
+                font-weight: bold;
+                font-size: 14px;
+            }
+            .value-label {
+                font-family: monospace;
+                font-size: 13px;
+            }
+        """)
+
+        toolbar_view = Adw.ToolbarView.new()
+        header = Adw.HeaderBar.new()
+        header.set_title_widget(Adw.WindowTitle.new("Tamazia iPhone Monitor", "Detection d'iPhone"))
+
+        menu_button = Gtk.MenuButton.new()
+        menu_button.set_icon_name("open-menu-symbolic")
+
+        menu = Gio.Menu.new()
+        menu.append("A propos", "app.about")
+        menu_button.set_menu_model(menu)
+
+        action_about = Gio.SimpleAction.new("about", None)
+        action_about.connect("activate", self.on_about)
+        self.add_action(action_about)
+
+        header.pack_end(menu_button)
+        toolbar_view.add_top_bar(header)
+
+        scroll = Gtk.ScrolledWindow.new()
+        scroll.set_vexpand(True)
+
+        main_box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        main_box.set_margin_start(12)
+        main_box.set_margin_end(12)
+        main_box.set_margin_top(12)
+        main_box.set_margin_bottom(12)
+
+        controls_group = Adw.PreferencesGroup.new()
+        controls_group.set_title("Controles")
+        controls_group.set_description("Demarrer/Arreter la surveillance des iPhone")
+
+        self.channel_row = Adw.ComboRow.new()
+        self.channel_row.set_title("Canal")
+        self.channel_row.set_subtitle("Version stable ou beta du canal de detection")
+
+        model_list = Gtk.StringList.new(["stable", "beta"])
+        self.channel_row.set_model(model_list)
+        self.channel_row.set_selected(0)
+        self.channel_row.connect("notify::selected", self.on_channel_changed)
+
+        controls_group.add(self.channel_row)
+
+        action_group = Adw.ActionRow.new()
+        action_group.set_title("Surveillance")
+        action_group.set_subtitle("Lancer la detection automatique d'iPhone")
+
+        self.start_stop_btn = Gtk.Button.new_with_label("▶ Demarrer")
+        self.start_stop_btn.add_css_class("suggested-action")
+        self.start_stop_btn.connect("clicked", self.on_start_stop)
+        self.start_stop_btn.set_valign(Gtk.Align.CENTER)
+
+        self.spinner = Gtk.Spinner.new()
+        self.spinner.set_halign(Gtk.Align.CENTER)
+        self.spinner.set_valign(Gtk.Align.CENTER)
+
+        btn_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, 6)
+        btn_box.append(self.start_stop_btn)
+        btn_box.append(self.spinner)
+        action_group.add_suffix(btn_box)
+        controls_group.add(action_group)
+
+        main_box.append(controls_group)
+
+        info_group = Adw.PreferencesGroup.new()
+        info_group.set_title("iPhone detecte")
+        info_group.set_description("Informations sur l'iPhone actuellement connecte")
+
+        self.status_label = Adw.ActionRow.new()
+        self.status_label.set_title("Statut")
+        self.status_label.set_subtitle("En attente de demarrage...")
+        info_group.add(self.status_label)
+
+        self.serial_label = Adw.ActionRow.new()
+        self.serial_label.set_title("Serial")
+        self.serial_label.set_subtitle("—")
+        info_group.add(self.serial_label)
+
+        self.name_label = Adw.ActionRow.new()
+        self.name_label.set_title("Nom")
+        self.name_label.set_subtitle("—")
+        info_group.add(self.name_label)
+
+        self.model_label = Adw.ActionRow.new()
+        self.model_label.set_title("Modele")
+        self.model_label.set_subtitle("—")
+        info_group.add(self.model_label)
+
+        self.os_label = Adw.ActionRow.new()
+        self.os_label.set_title("iOS")
+        self.os_label.set_subtitle("—")
+        info_group.add(self.os_label)
+
+        main_box.append(info_group)
+
+        log_group = Adw.PreferencesGroup.new()
+        log_group.set_title("Journal")
+        log_group.set_description("Dernieres activites")
+
+        self.log_buffer = Gtk.TextBuffer.new()
+        log_view = Gtk.TextView.new_with_buffer(self.log_buffer)
+        log_view.set_editable(False)
+        log_view.set_cursor_visible(False)
+        log_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
+        log_view.add_css_class("monospace")
+
+        log_frame = Gtk.Frame.new()
+        log_frame.set_child(log_view)
+        log_frame.set_margin_top(4)
+        log_frame.set_margin_bottom(4)
+        log_frame.set_vexpand(True)
+
+        log_group.add(log_frame)
+        main_box.append(log_group)
+
+        scroll.set_child(main_box)
+        toolbar_view.set_content(scroll)
+        win.set_content(toolbar_view)
+        win.present()
+
+        self.check_dependencies()
+
+    def check_dependencies(self):
+        missing = []
+        for cmd in ["idevice_id", "ideviceinfo"]:
+            if not self.find_executable(cmd):
+                missing.append(cmd)
+
+        if missing:
+            msg = f"Erreur : {' et '.join(missing)} introuvable{'s' if len(missing) > 1 else ''}. Installez libimobiledevice-utils."
+            self.append_log(f"⚠ {msg}")
+            self.update_status("Erreur : outils manquants", "error")
+            self.start_stop_btn.set_sensitive(False)
+        else:
+            self.append_log("✓ Dependances OK (libimobiledevice-utils installe)")
+
+    def find_executable(self, name):
+        import shutil
+        return shutil.which(name) is not None
+
+    def on_channel_changed(self, row, param):
+        selected = row.get_selected()
+        self.channel = "stable" if selected == 0 else "beta"
+        self.append_log(f"Canal change : {self.channel}")
+
+    def on_start_stop(self, btn):
+        if self.running:
+            self.stop_monitoring()
+        else:
+            self.start_monitoring()
+
+    def start_monitoring(self):
+        self.running = True
+        self.stop_event.clear()
+        self.start_stop_btn.set_label("■ Arreter")
+        self.start_stop_btn.remove_css_class("suggested-action")
+        self.start_stop_btn.add_css_class("destructive-action")
+        self.spinner.start()
+        self.channel_row.set_sensitive(False)
+
+        self.append_log(f"▶ Surveillance demarree (canal: {self.channel})")
+        self.update_status("Surveillance en cours...", "active")
+
+        self.write_log(f"--- {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} : demarrage ({self.channel}) ---")
+
+        self.monitor_thread = threading.Thread(target=self.monitor_loop, daemon=True)
+        self.monitor_thread.start()
+
+    def stop_monitoring(self):
+        self.running = False
+        self.stop_event.set()
+        self.start_stop_btn.set_label("▶ Demarrer")
+        self.start_stop_btn.remove_css_class("destructive-action")
+        self.start_stop_btn.add_css_class("suggested-action")
+        self.spinner.stop()
+        self.channel_row.set_sensitive(True)
+        self.prev_serial = ""
+
+        self.append_log("⏹ Surveillance arretee")
+        self.update_status("Arrete", "inactive")
+
+    def monitor_loop(self):
+        while not self.stop_event.is_set():
+            try:
+                serial = self.get_connected_device_serial()
+
+                if not serial:
+                    if self.prev_serial:
+                        msg = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} : aucun iPhone detecte."
+                        self.write_log(msg)
+                        GLib.idle_add(self.append_log, f"⏹ {msg}")
+                        GLib.idle_add(self.update_status, "En attente d'un iPhone...", "waiting")
+                        GLib.idle_add(self.clear_device_info)
+                        self.prev_serial = ""
+                else:
+                    if serial != self.prev_serial:
+                        info = self.get_device_info(serial)
+                        if info:
+                            msg = (f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} : iPhone detecte - "
+                                   f"Serial: {serial}, Nom: {info['name']}, "
+                                   f"Modele: {info['model']}, iOS: {info['os']}")
+                            self.write_log(msg)
+                            GLib.idle_add(self.append_log, f"📱 {msg}")
+                            GLib.idle_add(self.update_device_info, serial, info)
+                            GLib.idle_add(self.save_model_file, serial, info)
+                            GLib.idle_add(self.update_status, "iPhone connecte ✓", "connected")
+                            self.prev_serial = serial
+
+                for _ in range(25):
+                    if self.stop_event.is_set():
+                        return
+                    time.sleep(0.2)
+
+            except Exception as e:
+                if not self.stop_event.is_set():
+                    GLib.idle_add(self.append_log, f"❌ Erreur : {e}")
+                    time.sleep(5)
+
+    def get_connected_device_serial(self):
+        try:
+            result = subprocess.run(
+                ["idevice_id", "-l"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.strip().split('\n')[0]
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+        return None
+
+    def get_device_info(self, serial):
+        info = {}
+        try:
+            result = subprocess.run(
+                ["ideviceinfo", "-u", serial, "-k", "DeviceName"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            info['name'] = result.stdout.strip() if result.returncode == 0 else "Inconnu"
+
+            result = subprocess.run(
+                ["ideviceinfo", "-u", serial, "-k", "ProductType"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            info['model'] = result.stdout.strip() if result.returncode == 0 else "Inconnu"
+
+            result = subprocess.run(
+                ["ideviceinfo", "-u", serial, "-k", "ProductVersion"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            info['os'] = result.stdout.strip() if result.returncode == 0 else "Inconnu"
+
+            result = subprocess.run(
+                ["ideviceinfo", "-u", serial, "-k", "ProductName"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            info['product_name'] = result.stdout.strip() if result.returncode == 0 else "Inconnu"
+
+        except (subprocess.TimeoutExpired, FileNotFoundError) as e:
+            return None
+
+        return info
+
+    def update_status(self, text, status_type="info"):
+        self.status_label.set_subtitle(text)
+        for cls in ["status-connected", "status-waiting", "status-error", "status-active", "status-inactive"]:
+            self.status_label.remove_css_class(cls)
+        self.status_label.add_css_class(f"status-{status_type}")
+
+    def update_device_info(self, serial, info):
+        self.serial_label.set_subtitle(serial)
+        self.name_label.set_subtitle(info.get('name', '—'))
+        self.model_label.set_subtitle(info.get('model', '—'))
+        self.os_label.set_subtitle(info.get('os', '—'))
+
+    def clear_device_info(self):
+        self.serial_label.set_subtitle("—")
+        self.name_label.set_subtitle("—")
+        self.model_label.set_subtitle("—")
+        self.os_label.set_subtitle("—")
+
+    def save_model_file(self, serial, info):
+        try:
+            with open(MODEL_FILE, 'w') as f:
+                f.write(f"Serial: {serial}\n")
+                f.write(f"Name: {info.get('name', '')}\n")
+                f.write(f"ProductName: {info.get('product_name', '')}\n")
+                f.write(f"Model: {info.get('model', '')}\n")
+                f.write(f"OS: {info.get('os', '')}\n")
+                f.write(f"Channel: {self.channel}\n")
+                f.write(f"DetectedAt: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        except IOError as e:
+            self.append_log(f"⚠ Erreur ecriture fichier modele : {e}")
+
+    def write_log(self, message):
+        try:
+            with open(LOGFILE, 'a') as f:
+                f.write(message + '\n')
+        except IOError:
+            pass
+
+    def append_log(self, message):
+        if self.log_buffer:
+            end_iter = self.log_buffer.get_end_iter()
+            self.log_buffer.insert(end_iter, message + "\n")
+
+    def on_about(self, action, param):
+        about = Adw.AboutWindow.new()
+        about.set_application_name("Tamazia iPhone Monitor")
+        about.set_version(VERSION)
+        about.set_comments("Outil de detection et surveillance d'iPhone")
+        about.set_developer_name("Hamza_ltc")
+        about.set_license_type(Gtk.License.GPL_3_0)
+        about.set_website("https://github.com/Tamazia667/tamazia")
+        about.set_issue_url("https://github.com/Tamazia667/tamazia/issues")
+        about.set_translator_credits("Hamza_ltc")
+        about.set_application_icon("phone")
+        about.set_visible(True)
+
+
+def main():
+    app = TamaziaGUI()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
+    return app.run(sys.argv)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

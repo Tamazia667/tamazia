@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Tamazia iPhone Monitor
+Comment=Outil de détection et surveillance d'iPhone - Interface GTK4/Adwaita
+Exec=/home/hamza/Bureau/PhoneTools/tamazia-gui
+Icon=phone
+Terminal=false
+Type=Application
+Categories=Utility;Hardware;Monitor;
+StartupNotify=true
+X-GNOME-UsesNotifications=true

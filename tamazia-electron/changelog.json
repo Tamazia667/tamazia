@@ -1,48 +1,60 @@
 [
   {
-    "version": "1.10.0",
+    "version": "1.12.0",
     "date": "2026-07-18",
     "changes": [
-      "🔖 Renommage en Tamazia Multitools",
-      "🤖 Nouveau module Android (en développement) avec animations Lottie",
-      "✨ Nouvelles icônes et améliorations UI",
-      "🧹 Nettoyage du dépôt : suppression d'artefacts inutiles et renommage de fichiers",
-      "🖥️ Raccourci bureau automatique mis à jour lors des builds"
+      "Refonte theme Sahara / pharaon sur toute l'application",
+      "Fond 3D Three.js : dunes, soleil, etoiles et sable qui glisse",
+      "Ambiance sonore orientale (lecteur mp3 + synthese WebAudio en repli)",
+      "Page Android immersive : fiche appareil 3D, parallaxe souris, boutons 3D",
+      "Overlay sable anime sur la page Android"
+    ]
+  },
+  {
+    "version": "1.11.0",
+    "date": "2026-07-18",
+    "changes": [
+      "Renommage en Tamazia Multitools",
+      "Module Android en developpement avec animations Lottie",
+      "Nouvelles icones et ameliorations UI",
+      "Nettoyage du depot : suppression d'artefacts inutiles",
+      "Setup multi-OS et toutes architectures avec CLI gh",
+      "Release : un seul zip global + executables/setup par OS"
     ]
   },
   {
     "version": "1.2.0",
     "date": "2026-07-14",
     "changes": [
-      "✨ Nouveau design sidebar glassmorphism avec effet de flou",
-      "🔔 Notifications pop-up natives Linux (libnotify) sur connexion/déconnexion",
-      "🎵 Sons Web Audio API sur branchement et débranchement d'iPhone",
-      "📱 Mockup CSS/SVG dynamique de l'iPhone (Dynamic Island / Notch / Home Button)",
-      "🔐 Extraction iCloud (FMiP, Activation Lock, e-mail masqué Apple ID)",
-      "🛡️ Statut GSMA Blacklist avec simulation de scan",
-      "📊 Récupération IMEI, UDID, Numéro de modèle, Région, SIM",
-      "🍎 Logos iOS officiels avec dégradés de couleurs par version",
-      "⚡ Surveillance automatique au démarrage (plus de bouton manuel)",
-      "🗑️ Suppression du système de logs et de canaux obsolètes"
+      "Nouveau design sidebar glassmorphism avec effet de flou",
+      "Notifications pop-up natives Linux (libnotify) sur connexion/deconnexion",
+      "Sons Web Audio API sur branchement et debranchement d'iPhone",
+      "Mockup CSS/SVG dynamique de l'iPhone (Dynamic Island / Notch / Home Button)",
+      "Extraction iCloud (FMiP, Activation Lock, e-mail masque Apple ID)",
+      "Statut GSMA Blacklist avec simulation de scan",
+      "Recuperation IMEI, UDID, Numero de modele, Region, SIM",
+      "Logos iOS officiels avec degrades de couleurs par version",
+      "Surveillance automatique au demarrage",
+      "Suppression du systeme de logs et de canaux obsoletes"
     ]
   },
   {
     "version": "1.1.0",
     "date": "2026-07-13",
     "changes": [
-      "🎨 Interface Electron + React refactorée",
-      "📡 Scan USB en temps réel toutes les 3 secondes",
-      "💾 Sauvegarde des informations dans iphone_model.txt",
-      "🖥️ Titlebar personnalisée sans cadre OS"
+      "Interface Electron + React refactorisee",
+      "Scan USB en temps reel toutes les 3 secondes",
+      "Sauvegarde des informations dans iphone_model.txt",
+      "Titlebar personnalisee sans cadre OS"
     ]
   },
   {
     "version": "1.0.0",
     "date": "2026-07-11",
     "changes": [
-      "🚀 Première version de Tamazia iPhone Monitor",
-      "🔍 Détection basique d'iPhone via libimobiledevice",
-      "📝 Journal des connexions/déconnexions"
+      "Premiere version de Tamazia iPhone Monitor",
+      "Detection basique d'iPhone via libimobiledevice",
+      "Journal des connexions/deconnexions"
     ]
   }
 ]

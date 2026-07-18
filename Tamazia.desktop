@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Tamazia Multitools
+Comment=Outils pour téléphones — Tamazia Multitools. Nouvelle mise à jour : module Android en développement avec animations Lottie, nouvelles icônes et améliorations UI
+Exec=/home/hamza/Bureau/PhoneTools/tamazia-electron/out/tamazia-iphone-monitor-linux-x64/tamazia-iphone-monitor
+Icon=/home/hamza/Bureau/PhoneTools/tamazia-electron/assets/icon.png
+Terminal=false
+Type=Application
+Categories=Utility;Hardware;Monitor;
+StartupNotify=true
+StartupWMClass=tamazia-iphone-monitor
+X-GNOME-UsesNotifications=true

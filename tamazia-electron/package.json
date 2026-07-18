@@ -1,16 +1,28 @@
 {
   "name": "tamazia-iphone-monitor",
-  "version": "1.10.0",
-  "description": "Tamazia iPhone Monitor - Interface moderne pour détection iPhone",
+  "version": "1.12.0",
+  "description": "Tamazia iPhone Monitor - Detection et surveillance iPhone multi-OS",
   "main": "dist/main/main.js",
   "scripts": {
     "build": "tsc && webpack --config webpack.config.js",
-    "build:prod": "tsc && webpack --config webpack.config.js && npx electron-packager . tamazia-iphone-monitor --platform=linux --arch=x64 --out=out --overwrite && cp changelog.json out/tamazia-iphone-monitor-linux-x64/ && cp assets/icon.png out/tamazia-iphone-monitor-linux-x64/ && cp ../Tamazia.desktop /home/hamza/Bureau/Tamazia.desktop && chmod +x /home/hamza/Bureau/Tamazia.desktop && gio set /home/hamza/Bureau/Tamazia.desktop metadata::trusted yes && echo '✅ Build complet et raccourci bureau mis à jour'",
     "start": "npm run build && electron .",
     "dev": "webpack --config webpack.config.js --watch & electron .",
+    "pack:linux-x64": "npm run build && electron-packager . tamazia-iphone-monitor --platform=linux --arch=x64 --out=out --overwrite",
+    "pack:linux-arm64": "npm run build && electron-packager . tamazia-iphone-monitor --platform=linux --arch=arm64 --out=out --overwrite",
+    "pack:win-x64": "npm run build && electron-packager . tamazia-iphone-monitor --platform=win32 --arch=x64 --out=out --overwrite",
+    "pack:win-arm64": "npm run build && electron-packager . tamazia-iphone-monitor --platform=win32 --arch=arm64 --out=out --overwrite",
+    "pack:mac-x64": "npm run build && electron-packager . tamazia-iphone-monitor --platform=darwin --arch=x64 --out=out --overwrite",
+    "pack:mac-arm64": "npm run build && electron-packager . tamazia-iphone-monitor --platform=darwin --arch=arm64 --out=out --overwrite",
+    "pack:all": "npm run build && bash scripts/pack-all.sh",
+    "release": "bash scripts/release.sh",
     "postinstall": "electron-rebuild -f -w better-sqlite3"
   },
-  "keywords": ["iphone", "tamazia", "monitor", "electron"],
+  "keywords": [
+    "iphone",
+    "tamazia",
+    "monitor",
+    "electron"
+  ],
   "author": "Hamza_ltc",
   "license": "MIT",
   "devDependencies": {
@@ -18,8 +30,10 @@
     "@types/react-dom": "^18.2.0",
     "css-loader": "^6.8.0",
     "electron": "^28.0.0",
+    "electron-packager": "^17.1.2",
     "electron-rebuild": "^3.2.9",
     "html-webpack-plugin": "^5.5.0",
+    "postcss-loader": "^8.2.1",
     "style-loader": "^3.3.0",
     "ts-loader": "^9.5.0",
     "typescript": "^5.3.0",
@@ -27,9 +41,24 @@
     "webpack-cli": "^5.1.0"
   },
   "dependencies": {
+    "@radix-ui/react-separator": "^1.1.11",
+    "@radix-ui/react-switch": "^1.3.3",
+    "@radix-ui/react-tabs": "^1.1.17",
+    "@radix-ui/react-tooltip": "^1.2.12",
+    "@tsparticles/react": "^4.3.2",
+    "@tsparticles/slim": "^4.3.2",
+    "@types/three": "^0.185.1",
+    "autoprefixer": "^10.5.4",
+    "clsx": "^2.1.1",
     "framer-motion": "^10.16.0",
+    "lucide-react": "^1.25.0",
+    "postcss": "^8.5.19",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-icons": "^4.12.0"
+    "react-icons": "^4.12.0",
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^3.4.19",
+    "three": "^0.185.1",
+    "tsparticles": "^4.3.2"
   }
 }

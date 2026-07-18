@@ -1,0 +1,175 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION="1.11.0"
+REPO="Tamazia667/tamazia"
+APP_NAME="tamazia-iphone-monitor"
+CMD_NAME="tamazia"
+INSTALL_PREFIX="${PREFIX:-/usr/local}"
+BIN_DIR="$INSTALL_PREFIX/bin"
+SHARE_DIR="$INSTALL_PREFIX/share/tamazia"
+
+usage() {
+  cat <<EOF
+Tamazia Setup v$VERSION
+
+Usage: tamazia-setup [COMMANDE]
+
+Commandes:
+  install        Installe les outils Tamazia sur ce systeme
+  uninstall      Supprime les outils Tamazia
+  deps           Installe les dependances systeme (libimobiledevice)
+  build          Compile l'application Electron localement
+  pack           Genere les binaires pour tous les OS/architectures
+  release        Cree la release GitHub via gh (upload du zip + binaires)
+  help           Affiche cette aide
+
+EOF
+}
+
+detect_os() {
+  local uname_out
+  uname_out="$(uname -s)"
+  case "$uname_out" in
+    Linux*)  echo "linux" ;;
+    Darwin*) echo "macos" ;;
+    *)       echo "windows" ;;
+  esac
+}
+
+detect_arch() {
+  local arch
+  arch="$(uname -m)"
+  case "$arch" in
+    x86_64|amd64) echo "x64" ;;
+    arm64|aarch64) echo "arm64" ;;
+    *) echo "$arch" ;;
+  esac
+}
+
+install_deps() {
+  local os
+  os="$(detect_os)"
+  echo "Installation des dependances (libimobiledevice) pour $os"
+  case "$os" in
+    linux)
+      if command -v apt-get >/dev/null 2>&1; then
+        sudo apt-get update && sudo apt-get install -y libimobiledevice-utils usbmuxd
+      elif command -v dnf >/dev/null 2>&1; then
+        sudo dnf install -y libimobiledevice-utils usbmuxd
+      elif command -v pacman >/dev/null 2>&1; then
+        sudo pacman -S --noconfirm libimobiledevice usbmuxd
+      else
+        echo "Gestionnaire de paquets non reconnu. Installez libimobiledevice-utils manuellement." >&2
+      fi
+      ;;
+    macos)
+      if command -v brew >/dev/null 2>&1; then
+        brew install libimobiledevice usbmuxd
+      else
+        echo "Homebrew requis. Installez-le depuis https://brew.sh" >&2
+      fi
+      ;;
+    windows)
+      if command -v winget >/dev/null 2>&1; then
+        winget install --id=libimobiledevice.libimobiledevice
+      else
+        echo "Installez libimobiledevice via winget ou chocolatey." >&2
+      fi
+      ;;
+  esac
+}
+
+install() {
+  local os arch src
+  os="$(detect_os)"
+  arch="$(detect_arch)"
+  echo "Installation de Tamazia pour $os / $arch"
+
+  install_deps
+
+  mkdir -p "$SHARE_DIR" "$BIN_DIR"
+
+  local electron_dir="$ROOT/tamazia-electron"
+  if [ -d "$electron_dir/out/${APP_NAME}-${os}-${arch}" ]; then
+    cp -r "$electron_dir/out/${APP_NAME}-${os}-${arch}/." "$SHARE_DIR/"
+  fi
+
+  for f in tamazia tamazia-gui; do
+    if [ -f "$ROOT/$f" ]; then
+      cp "$ROOT/$f" "$SHARE_DIR/"
+      chmod +x "$SHARE_DIR/$f"
+    fi
+  done
+
+  cat > "$BIN_DIR/$CMD_NAME" <<EOF
+#!/usr/bin/env bash
+exec "$SHARE_DIR/$CMD_NAME" "\$@"
+EOF
+  chmod +x "$BIN_DIR/$CMD_NAME"
+
+  echo "Tamazia installe. Lancez '$CMD_NAME' dans un terminal."
+}
+
+uninstall() {
+  echo "Suppression de Tamazia"
+  rm -f "$BIN_DIR/$CMD_NAME"
+  rm -rf "$SHARE_DIR"
+  echo "Tamazia supprime."
+}
+
+do_build() {
+  cd "$ROOT/tamazia-electron"
+  npm install
+  npm run build
+  echo "Build termine."
+}
+
+do_pack() {
+  cd "$ROOT/tamazia-electron"
+  npm install
+  npm run pack:all
+}
+
+do_release() {
+  local release_dir="$ROOT/tamazia-electron/release"
+  if [ ! -d "$release_dir" ]; then
+    echo "Generation de la release..."
+    (cd "$ROOT/tamazia-electron" && npm run release)
+  fi
+
+  if ! command -v gh >/dev/null 2>&1; then
+    echo "gh (GitHub CLI) est requis pour la release." >&2
+    exit 1
+  fi
+
+  local tag="v$VERSION"
+  echo "Creation de la release GitHub $tag"
+
+  gh release create "$tag" \
+    --repo "$REPO" \
+    --title "Tamazia $VERSION" \
+    --notes "Release $VERSION de Tamazia (multi-OS, toutes architectures)." \
+    "$release_dir"/* || echo "Release deja existante ou erreur."
+
+  echo "Release publiee : https://github.com/$REPO/releases/tag/$tag"
+}
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+main() {
+  local cmd="${1:-help}"
+  shift || true
+  case "$cmd" in
+    install)   install ;;
+    uninstall) uninstall ;;
+    deps)      install_deps ;;
+    build)     do_build ;;
+    pack)      do_pack ;;
+    release)   do_release ;;
+    help|-h|--help) usage ;;
+    *) echo "Commande inconnue : $cmd" >&2; usage; exit 1 ;;
+  esac
+}
+
+main "$@"

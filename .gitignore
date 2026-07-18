@@ -1,0 +1,10 @@
+tamazia-electron/node_modules/
+tamazia-electron/out/
+tamazia-electron/dist/
+tamazia-electron/release/
+*.log
+.DS_Store
+iphone_model.txt
+tamazia.log
+__pycache__/
+*.pyc
