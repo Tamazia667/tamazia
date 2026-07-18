@@ -1,0 +1,45 @@
+{
+  "name": "tamazia-electron",
+  "version": "1.0.0",
+  "description": "Tamazia iPhone Monitor - Interface moderne pour détection iPhone",
+  "main": "dist/main/main.js",
+  "scripts": {
+    "build": "tsc && webpack --config webpack.config.js",
+    "build:prod": "tsc && webpack --config webpack.config.js && npx electron-packager . tamazia-iphone-monitor --platform=linux --arch=x64 --out=out --overwrite && cp changelog.json out/tamazia-iphone-monitor-linux-x64/ && cp assets/icon.png out/tamazia-iphone-monitor-linux-x64/ && cp ../Tamazia.desktop /home/hamza/Bureau/Tamazia.desktop && chmod +x /home/hamza/Bureau/Tamazia.desktop && gio set /home/hamza/Bureau/Tamazia.desktop metadata::trusted yes && echo '✅ Build complet et raccourci bureau mis à jour'",
+    "start": "npm run build && electron .",
+    "dev": "webpack --config webpack.config.js --watch & electron .",
+    "postinstall": "electron-rebuild -f -w better-sqlite3"
+  },
+  "keywords": [
+    "iphone",
+    "tamazia",
+    "monitor",
+    "electron"
+  ],
+  "author": "Tamazia667",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "css-loader": "^6.8.0",
+    "electron": "^28.0.0",
+    "electron-rebuild": "^3.2.9",
+    "html-webpack-plugin": "^5.5.0",
+    "style-loader": "^3.3.0",
+    "ts-loader": "^9.5.0",
+    "typescript": "^5.3.0",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.0"
+  },
+  "dependencies": {
+    "framer-motion": "^10.16.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-icons": "^4.12.0"
+  },
+  "credits": "Tamazia667",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Tamazia667/Tamazia.git"
+  }
+}

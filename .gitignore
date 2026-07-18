@@ -1,0 +1,31 @@
+# Node
+node_modules/
+npm-debug.log
+package-lock.json
+.yarn-integrity
+
+# Build outputs
+dist/
+out/
+build/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Editor
+.vscode/
+.idea/
+*.sublime-workspace
+
+# Logs
+*.log
+
+# Others
+coverage/
+*.tgz
